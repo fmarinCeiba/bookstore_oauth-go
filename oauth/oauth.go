@@ -100,12 +100,12 @@ func cleanRequest(req *http.Request) {
 func getAccessToken(accessTokenID string) (*accessToken, rest_errors.RestErr) {
 	res := oauthRestClient.Get(fmt.Sprintf("/oauth/access_token/%s", accessTokenID))
 	if res == nil || res.Response == nil {
-		return nil, rest_errors.NewInternalServerError("invalid resclient response when trying to get access token", errors.New("rest error"))
+		return nil, rest_errors.NewInternalServerError("invalid resclient response when trying to get access token", errors.New("network timeout"))
 	}
 	if res.StatusCode > 299 {
-		var rErr rest_errors.RestErr
-		if err := json.Unmarshal(res.Bytes(), &rErr); err != nil {
-			return nil, rest_errors.NewInternalServerError("invalid error interface when to trying to get access token", errors.New("rest error"))
+		rErr, err := rest_errors.NewRestErrorFromBytes(res.Bytes())
+		if err != nil {
+			return nil, rest_errors.NewInternalServerError("invalid error interface when trying to get access token", err)
 		}
 		return nil, rErr
 	}
